@@ -1,0 +1,295 @@
+<!DOCTYPE html >
+<html>
+<head>
+<title>Life Counter</title>
+<link rel="stylesheet" href="css/font-awesome.min.css"/>
+<style>
+* { font-family: Tahoma, sans-serif; box-sizing: border-box; position: relative; font-size: 11pt; }
+*:focus { outline: 0; }
+html, body { padding: 0; margin: 0; }
+#controls {
+	margin: 0; padding: 0; margin-bottom: 20px;
+	border-bottom: 1px solid #aaa;
+	background: linear-gradient(to bottom, #fff, #bbb);
+	list-style: none;
+}
+#controls li {
+	display: inline-block;
+}
+#controls button {
+	padding: 1em 2em;
+	font-weight: bold;
+	background: #f0a040;
+	color: #fff;
+	border: 0;
+	opacity: 0.5;
+	transition: background 0.3s, color 0.3s;
+}
+#controls button:hover {
+	cursor: pointer;
+	background: #f0f0f0;
+	color: #222;
+}
+#players {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+}
+#players > * {
+	min-width: 160px;
+	max-width: 240px;
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+.player {
+	margin-bottom: 1em;
+	border-radius: 4px;
+	background: gainsboro;
+	padding: 0.5em;
+}
+.player input, .modal input {
+	width: 100%;
+	padding: 0.5em 1em;
+	height: 3em; line-height: 3em;
+	margin: 0.5em 0;
+	border: 0;
+}
+.player input[type="number"], .modal input[type="number"] {
+	width: 30%; margin: 0; margin-bottom: 0.5em;
+}
+.player .icon { 
+	height: 3em; line-height: 3em; background: #000; color: #fff;
+	text-align: center; width: 20%; display: inline-block;
+}
+.player button, .modal button {
+	border: 0;
+	width: 25%; height: 3em; line-height:3em;
+}
+.player button:hover, .modal button:hover {
+	cursor: pointer;
+	background: #ddd;
+	color: #888;
+}
+.red { background: red; }
+.green { background: green; }
+button.remove, button.damage { width:100%; border-radius: 4px; background: black; color: #fad040; }
+button.damage { margin-bottom: 0.5em; }
+
+.modal {
+	position: fixed;
+	top: 2em; bottom: 2em; left: 2em; right: 2em;
+	overflow: auto;
+	padding: 1em;
+	border-radius: 4px;
+	background: #222;
+	color: #fff;
+}
+
+.modal > div {
+	padding: 1em;
+	width: 100%;
+}
+.modal .cmdr { background: #000; display: inline-block;
+ width: 20%; line-height: 3em; padding: 0 0.5em; font-weight: bold; } 
+</style>
+<script src="jquery.min.js" type="text/javascript"></script>
+
+</head>
+<body>
+
+
+<ul id="controls">
+<li><button type="button" onclick="addPlayer()">Add Player</button></li>
+</ul>
+
+<div id="players"></div>
+
+
+<script>
+var Players = [];
+function Player() {
+	this.number = Players.length;
+	this.name = 'Player ' + this.number;
+	this.commander = 'Commander';
+	this.life = 40;
+	this.poison = 0;
+	this.experience = 0;
+	this.emblems = [];
+	this.element = null;
+	this.damage = [];
+	this.remove = function () {
+		document.getElementById('players').removeChild(this.element);
+		Players[(this.number)] = null;
+	}
+}
+function addPlayer(element) {
+	var player = new Player();
+	Players[player.number] = player;
+	
+	createPlayerUI(player);
+	
+}
+function createPlayerUI(player) {
+	var container = document.createElement('div');
+	container.className = 'player';
+	
+	var name = document.createElement('input')
+	name.value = player.name;
+	name.onchange = function () { player.name = this.value; }
+	container.appendChild(name);
+	
+	var commander = document.createElement('input');
+	commander.value = player.commander;
+	commander.onchange = function () { player.commander = this.value; }
+	container.appendChild(commander);
+	
+	var lifeIcon = document.createElement('div');
+	lifeIcon.className = 'icon';
+	lifeIcon.innerHTML = '<i class="fa fa-heart"></i>';
+	container.appendChild(lifeIcon);
+	
+	var lifeValue = document.createElement('input');
+	lifeValue.value = player.life;
+	lifeValue.type = 'number';
+	lifeValue.onchange = function () { player.life = parseInt(this.value);}
+	container.appendChild(lifeValue);
+	
+	var lifeUp = document.createElement('button');
+	lifeUp.type = 'button';
+	lifeUp.className = 'green';
+	lifeUp.innerHTML = '<i class="fa fa-plus"></i>';
+	lifeUp.onclick = function () { lifeValue.value = parseInt(lifeValue.value) + 1; lifeValue.onchange();  }
+	container.appendChild(lifeUp);
+
+	var lifeDown = document.createElement('button');
+	lifeDown.type = 'button';
+	lifeDown.className = 'red';
+	lifeDown.innerHTML = '<i class="fa fa-minus"></i>';
+	lifeDown.onclick = function () { lifeValue.value = parseInt(lifeValue.value) - 1; lifeValue.onchange(); }
+	container.appendChild(lifeDown);
+	
+	var poisonIcon = document.createElement('div');
+	poisonIcon.className = 'icon';
+	poisonIcon.innerHTML = '<i class="fa fa-tint"></i>';
+	container.appendChild(poisonIcon);
+	
+	var poisonValue = document.createElement('input');
+	poisonValue.value = player.poison;
+	poisonValue.type = 'number';
+	poisonValue.onchange = function () { player.poison = parseInt(this.value); }
+	container.appendChild(poisonValue);
+	
+	var poisonUp = document.createElement('button');
+	poisonUp.type = 'button';
+	poisonUp.className = 'green';
+	poisonUp.innerHTML = '<i class="fa fa-plus"></i>';
+	poisonUp.onclick = function () { poisonValue.value = parseInt(poisonValue.value) + 1; poisonValue.onchange(); }
+	container.appendChild(poisonUp);
+
+	var poisonDown = document.createElement('button');
+	poisonDown.type = 'button';
+	poisonDown.className = 'red';
+	poisonDown.innerHTML = '<i class="fa fa-minus"></i>';
+	poisonDown.onclick = function () { poisonValue.value = parseInt(poisonValue.value) - 1; poisonValue.onchange(); }
+	container.appendChild(poisonDown);
+	
+	var expIcon = document.createElement('div');
+	expIcon.className = 'icon';
+	expIcon.innerHTML = '<i class="fa fa-leanpub"></i>';
+	container.appendChild(expIcon);
+	
+	var expValue = document.createElement('input');
+	expValue.value = player.experience;
+	expValue.type = 'number';
+	expValue.onchange = function () { player.experience = parseInt(this.value); }
+	container.appendChild(expValue);
+	
+	var expUp = document.createElement('button');
+	expUp.type = 'button';
+	expUp.className = 'green';
+	expUp.innerHTML = '<i class="fa fa-plus"></i>';
+	expUp.onclick = function () { expValue.value = parseInt(expValue.value) + 1; expValue.onchange(); }
+	container.appendChild(expUp);
+
+	var expDown = document.createElement('button');
+	expDown.type = 'button';
+	expDown.className = 'red';
+	expDown.innerHTML = '<i class="fa fa-minus"></i>';
+	expDown.onclick = function () { expValue.value = parseInt(expValue.value) - 1; expValue.onchange(); }
+	container.appendChild(expDown);
+	
+	var damage = document.createElement('button');
+	damage.type = 'button';
+	damage.className = 'damage';
+	damage.innerHTML = '<i class="fa fa-heartbeat"></i>';
+	damage.onclick = function () { showCommanderDamage(player); }
+	container.appendChild(damage);
+	
+	var removePlayer = document.createElement('button');
+	removePlayer.type = 'button';
+	removePlayer.className = 'remove';
+	removePlayer.innerHTML = '<i class="fa fa-times"></i>';
+	removePlayer.onclick = function () { player.remove(); }
+	container.appendChild(removePlayer);
+	
+	player.element = container;
+	document.getElementById('players').appendChild(container);
+}
+
+function showCommanderDamage(player) {
+	var modal = document.createElement('div');
+	modal.className = 'modal';
+	
+	var close = document.createElement('button');
+	close.type = 'button';
+	close.className = 'remove';
+	close.innerHTML = '<i class="fa fa-times"></i>';
+	close.onclick = function () { document.body.removeChild(this.parentElement); }
+	modal.appendChild(close);
+	
+	for (var i = 0; i < Players.length; i++) {
+		if (Players[i] !== null) {
+			modal.appendChild(createCommanderUI(player, Players[i]));
+		}
+	}
+	document.body.appendChild(modal);
+}
+
+function createCommanderUI(target, source) {
+	var div = document.createElement('div');
+
+	var cmdr = document.createElement('div');
+	cmdr.innerText = source.commander;
+	cmdr.className = 'cmdr';
+	div.appendChild(cmdr)
+	
+	var dmgValue = document.createElement('input');
+	if (typeof (target.damage[source.number]) === 'undefined') {
+		target.damage[source.number] = 0;
+	}
+	dmgValue.value = target.damage[source.number];
+	dmgValue.type = 'number';
+	dmgValue.onchange = function () { target.damage[source.number] = parseInt(this.value); }
+	div.appendChild(dmgValue);
+	
+	var dmgUp = document.createElement('button');
+	dmgUp.type = 'button';
+	dmgUp.className = 'green';
+	dmgUp.innerHTML = '<i class="fa fa-plus"></i>';
+	dmgUp.onclick = function () { dmgValue.value = parseInt(dmgValue.value) + 1; dmgValue.onchange(); }
+	div.appendChild(dmgUp);
+
+	var dmgDown = document.createElement('button');
+	dmgDown.type = 'button';
+	dmgDown.className = 'red';
+	dmgDown.innerHTML = '<i class="fa fa-minus"></i>';
+	dmgDown.onclick = function () { dmgValue.value = parseInt(dmgValue.value) - 1; dmgValue.onchange(); }
+	div.appendChild(dmgDown);
+	
+	return div;
+}
+
+addPlayer();
+</script>
+</body>
+</html>
